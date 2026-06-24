@@ -5,10 +5,9 @@
 ## 📂 프로젝트 구조
 
 - `providers.tf`: AWS 및 Kubernetes 프로바이더 설정
-- `params.tf`: 자주 수정되는 변수들 (리전, 클러스터명, 노드 사양 등) 모음
+- `params.tf`: 자주 수정되는 변수들 (리전, 클러스터명, 노드 사양 등)과 생성된 리소스의 주요 정보 출력(outputs)
 - `vpc.tf`: EKS용 네트워크(VPC, Subnet, NAT Gateway) 정의
 - `eks.tf`: EKS 클러스터 및 Managed Node Group 정의
-- `outputs.tf`: 생성된 리소스의 주요 정보 출력
 
 ## 🏗️ 인프라 구조 및 특징
 
