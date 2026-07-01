@@ -72,6 +72,7 @@ variable "vpc_cidr" {
 
 # 퍼블릭 API 엔드포인트 접근을 허용할 CIDR 목록.
 # 기본 0.0.0.0/0(전체 허용)이지만, 운영에서는 사무실/VPN IP로 좁히는 것을 권장함.
+# ⚠️ 보안 유의: 실제 사무실/VPN IP 대역이 노출되므로 값을 외부에 공유하지 말 것.
 variable "cluster_endpoint_public_access_cidrs" {
   description = "CIDRs allowed to access the public API endpoint"
   type        = list(string)
