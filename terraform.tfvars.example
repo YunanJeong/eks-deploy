@@ -28,6 +28,7 @@ public_subnet_ids  = []
 # 신규 VPC 생성 시에만 사용되는 CIDR (기본값: 10.0.0.0/16)
 vpc_cidr = "10.0.0.0/16"
 
+# ⚠️ 보안 유의: 아래는 API 서버 접근을 허용할 실제 IP 대역. 사무실/VPN IP가 노출되므로 외부 공유 금지.
 # 퍼블릭 엔드포인트 접근 허용 CIDR (기본값: 전체 허용 — 운영은 좁힐 것)
 cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
