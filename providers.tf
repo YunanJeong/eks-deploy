@@ -7,14 +7,16 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0" # AWS Provider 버전 고정
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.0" # Kubernetes 리소스 관리를 위한 Provider
-    }
   }
 }
 
-# AWS Provider 설정: params.tf에 정의된 리전을 사용함
+# AWS Provider 설정
+# - region: params.tf의 var.aws_region 사용
+# - default_tags: 모든 리소스에 공통 태그를 일괄 적용하여 태그 관리를 일원화함
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = var.tags
+  }
 }
