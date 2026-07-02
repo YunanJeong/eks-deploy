@@ -1,8 +1,6 @@
-# ┌─────────────────────────────────────────────────────────────┐
-# │ Terraform 변수값 샘플 파일                                     │
-# │   1. terraform.tfvars 로 복사   2. 값 수정   3. terraform apply │
-# │   실제 terraform.tfvars 는 .gitignore 로 제외됨               │
-# └─────────────────────────────────────────────────────────────┘
+# =====================================================================
+# Terraform 변수값 — 샘플 파일 (git 포함)
+# =====================================================================
 
 # [필수] EKS 클러스터 이름 — default 없음. 블루/그린 시 신규 이름 지정.
 cluster_name = "eks-cluster-C"
@@ -20,7 +18,7 @@ cluster_version = "1.33"
 authentication_mode = "API_AND_CONFIG_MAP"
 
 # --- 네트워크 ---
-# 기존 VPC를 쓰려면 아래 3개를 채움. 비워두면 신규 VPC/서브넷을 생성함.
+# 기존 VPC를 쓰려면 아래 3개를 채움(이때 vpc_cidr은 무시됨). 비워두면 vpc_cidr로 신규 생성함.
 vpc_id             = ""
 private_subnet_ids = []
 public_subnet_ids  = []
@@ -40,7 +38,8 @@ node_group_max_size     = 3
 
 # --- 태그 (모든 리소스에 일괄 적용) ---
 tags = {
-  Environment = "dev"
-  Terraform   = "true"
-  Project     = "eks-deploy"
+  Terraform = "true"
+  Owner     = "you@example.com"
+  Service   = "my-service"
+  Name      = "eks-cluster-C"
 }
