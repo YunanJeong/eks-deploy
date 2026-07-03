@@ -31,6 +31,12 @@ module "eks" {
   create_cloudwatch_log_group = false
   cluster_enabled_log_types   = []
 
+  # --- 관리형 애드온 ---
+  # Pod Identity 에이전트: association이 실제 작동하려면 이 애드온이 필수 전제.
+  cluster_addons = {
+    eks-pod-identity-agent = {}
+  }
+
   # EKS Managed Node Groups 설정
   eks_managed_node_groups = {
     main = {

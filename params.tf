@@ -179,3 +179,26 @@ output "node_group_scaling" {
     max     = var.node_group_max_size
   }
 }
+
+# ---------------------------------------------------------------------
+# IAM 역할 목록 (plan/apply 하단에서 확인용)
+# ---------------------------------------------------------------------
+
+# [1] EKS 모듈이 기본 생성하는 역할 (클러스터/노드 동작 필수)
+output "iam_roles_base" {
+  description = "Base IAM roles auto-created by the EKS module (name => purpose)"
+  value = {
+    "${module.eks.cluster_iam_role_name}"                                  = "클러스터(컨트롤플레인) 역할"
+    "${try(module.eks.eks_managed_node_groups["main"].iam_role_name, "")}" = "노드그룹(main) 역할"
+  }
+}
+
+# [2] 각 앱을 위해 생성한 Pod Identity 역할 (용도 표기)
+output "iam_roles_app" {
+  description = "Application Pod Identity roles created by this project (name => purpose)"
+  value = {
+    "${aws_iam_role.karpenter.name}" = "Karpenter — 노드 오토스케일링(EC2 생성/종료)"
+    "${aws_iam_role.vpc_cni.name}"   = "VPC CNI — 파드 네트워킹(ENI/IP 관리)"
+    "${aws_iam_role.ebs_csi.name}"   = "EBS CSI — 영구 볼륨(EBS) 프로비저닝"
+  }
+}

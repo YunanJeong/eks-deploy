@@ -106,12 +106,14 @@ terraform destroy
 
 모든 이름은 `cluster_name` 기반. **아래 순서(의존성)대로** 삭제.
 
-1. **노드** — Managed Node Group(`<name>-main`) → IAM 역할(`<name>-main-node`)·정책 → Launch Template
+1. **노드** — Managed Node Group(`<name>-main`) → 노드 IAM 역할(`<name>-main-node`)·정책 → Launch Template
 2. **애드온** — CoreDNS, kube-proxy, VPC CNI (노드그룹과 함께 정리됨)
-3. **컨트롤 플레인** — EKS 클러스터 → 클러스터 IAM 역할 → 보안 그룹
-4. **인증/권한** — OIDC 프로바이더(IRSA), Access Entry·정책 연결
-5. **로그/암호화** — CloudWatch 로그 그룹(`/aws/eks/<name>/cluster`), KMS 키·별칭
+3. **컨트롤 플레인** — EKS 클러스터 → 클러스터 IAM 역할(`<name>-cluster-*`) → 보안 그룹
+4. **앱용 IAM 역할** (Pod Identity, 이 프로젝트가 생성) — `<name>-Karpenter`, `<name>-AmazonEKSPodIdentityAmazonVPCCNIRole`, `<name>-AmazonEKSPodIdentityAmazonEBSCSI` → 연결된 정책
+5. **인증/권한** — OIDC 프로바이더(IRSA), Access Entry·정책 연결
 6. **네트워크** (신규 생성 시) — NAT → 서브넷 → IGW → 라우팅 테이블 → VPC
+
+> IAM 역할은 apply 하단의 `iam_roles_base`(기본 생성) / `iam_roles_app`(앱용) output으로 목록 확인 가능.
 
 **⚠️ 숨은 리소스 (남으면 과금·삭제 차단)**
 - **EIP** — NAT 삭제해도 탄력적 IP는 남아 과금. 별도 해제.
