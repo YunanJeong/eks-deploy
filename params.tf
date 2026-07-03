@@ -188,8 +188,8 @@ output "node_group_scaling" {
 output "iam_roles_base" {
   description = "Base IAM roles auto-created by the EKS module (name => purpose)"
   value = {
-    "${module.eks.cluster_iam_role_name}"                                  = "클러스터(컨트롤플레인) 역할"
-    "${try(module.eks.eks_managed_node_groups["main"].iam_role_name, "")}" = "노드그룹(main) 역할"
+    "${module.eks.cluster_iam_role_name}"                                  = "[기본 필수] 클러스터(컨트롤플레인) 역할"
+    "${try(module.eks.eks_managed_node_groups["main"].iam_role_name, "")}" = "[기본 필수] 노드그룹(main) 역할"
   }
 }
 
