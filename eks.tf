@@ -22,6 +22,15 @@ module "eks" {
   cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
   cluster_endpoint_private_access      = true
 
+  # --- KMS / 로그 비활성화 (컴플라이언스 준수 or 감사 필요시 활성화. kms:*, logs:* 권한 필요) ---
+  # KMS off → Secret은 AWS 기본 암호화로 저장됨(평문 아님). CMK/envelope 암호화를
+  create_kms_key            = false
+  cluster_encryption_config = {}
+
+  # 로그 off → 컨트롤플레인 감사로그 미수집. 규제상 감사 추적 필요하면 log_types 채울 것.
+  create_cloudwatch_log_group = false
+  cluster_enabled_log_types   = []
+
   # EKS Managed Node Groups 설정
   eks_managed_node_groups = {
     main = {
