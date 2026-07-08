@@ -1,4 +1,8 @@
-# Terraform 및 Required Providers 설정
+#======================================================================
+# Terraform / Provider 설정
+#   - required_version, required_providers, AWS provider(공통 태그 포함)
+#======================================================================
+
 terraform {
   required_version = ">= 1.5.0" # Terraform 최소 버전 요구사항
 

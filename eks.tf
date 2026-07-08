@@ -1,4 +1,8 @@
-# 공식 AWS EKS 모듈 사용
+#======================================================================
+# EKS 클러스터
+#   - 공식 AWS EKS 모듈 기반. 접근제어 / 애드온 / 노드그룹 정의.
+#======================================================================
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -22,19 +26,60 @@ module "eks" {
   cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
   cluster_endpoint_private_access      = true
 
-  # --- KMS / 로그 비활성화 (컴플라이언스 준수 or 감사 필요시 활성화. kms:*, logs:* 권한 필요) ---
-  # KMS off → Secret은 AWS 기본 암호화로 저장됨(평문 아님). CMK/envelope 암호화를
+  # --- KMS / 로그 비활성화 (kms:*, logs:* 권한 불필요하게) ---
+  # KMS off -> Secret은 AWS 기본 암호화로 저장됨(평문 아님).
+  #   CMK/envelope 암호화를 요구하는 컴플라이언스(PCI-DSS 등)면 켤 것.
   create_kms_key            = false
   cluster_encryption_config = {}
 
-  # 로그 off → 컨트롤플레인 감사로그 미수집. 규제상 감사 추적 필요하면 log_types 채울 것.
+  # 로그 off -> 컨트롤플레인 감사로그 미수집. 규제상 감사 추적 필요하면 log_types 채울 것.
   create_cloudwatch_log_group = false
   cluster_enabled_log_types   = []
 
   # --- 관리형 애드온 ---
-  # Pod Identity 에이전트: association이 실제 작동하려면 이 애드온이 필수 전제.
+  # 필수(없으면 클러스터 동작 불가): vpc-cni, coredns, kube-proxy
+  # 준필수(본 구성 전제): eks-pod-identity-agent, aws-ebs-csi-driver
+  # 운영 편의: eks-node-monitoring-agent, metrics-server
+  #
+  # vpc-cni/ebs-csi의 IAM 역할은 애드온이 소유하는 pod_identity_association으로 연결함.
+  # (역할 정의-연결 방식의 근거는 iam.tf 참고)
   cluster_addons = {
-    eks-pod-identity-agent = {}
+    # Pod Identity 에이전트: association이 실제 작동하려면 필수 전제.
+    # before_compute=true -> 노드/CNI보다 먼저 떠서, CNI가 처음부터 자격증명을 받게 함.
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
+
+    # 파드 네트워킹(ENI/IP). before_compute=true로 노드 부팅 전에 준비되게 함.
+    # IAM 권한 필요 -> pod_identity_association 필수. standalone이 아닌 애드온 귀속으로 생성.
+    vpc-cni = {
+      before_compute = true
+      pod_identity_association = [{
+        role_arn        = aws_iam_role.vpc_cni.arn
+        service_account = local.pod_identity_sa.vpc_cni # "aws-node"
+      }]
+    }
+
+    # 클러스터 내부 DNS
+    coredns = {}
+
+    # 서비스 네트워킹(iptables 규칙). 네트워킹 필수 애드온이라 함께 둠.
+    kube-proxy = {}
+
+    # 영구 볼륨(EBS) 프로비저닝 드라이버
+    # IAM 권한 필요 -> pod_identity_association 필수. standalone이 아닌 애드온 귀속으로 생성.
+    aws-ebs-csi-driver = {
+      pod_identity_association = [{
+        role_arn        = aws_iam_role.ebs_csi.arn
+        service_account = local.pod_identity_sa.ebs_csi # "ebs-csi-controller-sa"
+      }]
+    }
+
+    # 노드 상태 모니터링 에이전트
+    eks-node-monitoring-agent = {}
+
+    # 지표 서버(HPA/kubectl top용)
+    metrics-server = {}
   }
 
   # EKS Managed Node Groups 설정
