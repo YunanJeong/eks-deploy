@@ -32,7 +32,9 @@ data "aws_iam_policy_document" "pod_identity_trust" {
   }
 }
 
-# Karpenter - 노드 오토스케일링(EC2 생성/종료). 권한 정책은 Karpenter 배포 시 부여.
+# Karpenter - 노드 오토스케일링(EC2 생성/종료).
+# ⚠️ 주의: 아직 권한 정책이 없음. 버전(v0.x / v1.x)마다 필요 권한이 달라서,
+#   Karpenter Helm 배포 시점에 맞는 권한 정책을 반드시 부여할 것.
 resource "aws_iam_role" "karpenter" {
   name               = "${var.cluster_name}-Karpenter"
   assume_role_policy = data.aws_iam_policy_document.pod_identity_trust.json
