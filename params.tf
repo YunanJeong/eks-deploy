@@ -105,6 +105,27 @@ variable "node_group_desired_size" {
   default     = 2
 }
 
+# --- 액세스 (클러스터 생성자 외 추가 멤버) ---
+# 클러스터에 kubectl 접근을 허용할 IAM 유저/역할 목록.
+#   key           : 임의 식별자 (예: "devops-lead")
+#   principal_arn : 대상 IAM 유저/역할 ARN
+#   policy_arn    : 부여할 EKS access policy ARN
+#     - .../AmazonEKSClusterAdminPolicy : 클러스터 전체 관리자
+#     - .../AmazonEKSAdminPolicy        : 관리자(일부 제한)
+#     - .../AmazonEKSEditPolicy         : 리소스 편집
+#     - .../AmazonEKSViewPolicy         : 읽기 전용
+#   namespaces    : 비우면([]) 클러스터 전체, 채우면 해당 네임스페이스로 범위 제한
+# 생성자(Terraform 실행 IAM)는 enable_cluster_creator_admin_permissions로 자동 관리자.
+variable "access_entries" {
+  description = "Additional IAM principals granted cluster access"
+  type = map(object({
+    principal_arn = string
+    policy_arn    = string
+    namespaces    = optional(list(string), [])
+  }))
+  default = {}
+}
+
 # --- 태그 (provider default_tags로 모든 리소스에 일괄 적용됨) ---
 variable "tags" {
   description = "Common tags applied to all resources"

@@ -20,6 +20,22 @@ module "eks" {
   # 클러스터 생성자에게 관리자 권한 자동 부여 (Access Entry 방식)
   enable_cluster_creator_admin_permissions = true
 
+  # 생성자 외 추가 멤버 (var.access_entries -> 모듈 형식으로 변환)
+  access_entries = {
+    for k, v in var.access_entries : k => {
+      principal_arn = v.principal_arn
+      policy_associations = {
+        this = {
+          policy_arn = v.policy_arn
+          access_scope = length(v.namespaces) > 0 ? {
+            type       = "namespace"
+            namespaces = v.namespaces
+          } : { type = "cluster" }
+        }
+      }
+    }
+  }
+
   # --- 엔드포인트 접근 ---
   # 원격에서 kubectl 접근이 가능하도록 퍼블릭 엔드포인트 활성화
   cluster_endpoint_public_access       = true

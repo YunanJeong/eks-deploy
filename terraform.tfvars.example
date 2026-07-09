@@ -36,6 +36,24 @@ node_group_min_size     = 1
 node_group_desired_size = 2
 node_group_max_size     = 3
 
+# --- 액세스 (클러스터 생성자 외 추가 멤버) ---
+# key이름("iam_user_N")은 임의 라벨 - 자유롭게 짓고, 멤버 수만큼 항목을 늘림.
+# policy_arn: .../AmazonEKSClusterAdminPolicy(전체관리) | AdminPolicy | EditPolicy | ViewPolicy(읽기)
+# namespaces: 비우면 클러스터 전체, 채우면 해당 네임스페이스로 제한.
+access_entries = {}
+# access_entries = {
+#   iam_user_1 = {
+#     principal_arn = "arn:aws:iam::123456789012:user/someone"
+#     policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+#     namespaces    = []
+#   }
+#   iam_user_2 = {
+#     principal_arn = "arn:aws:iam::123456789012:user/another"
+#     policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+#     namespaces    = []
+#   }
+# }
+
 # --- 태그 (모든 리소스에 일괄 적용) ---
 tags = {
   Terraform = "true"
