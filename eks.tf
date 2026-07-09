@@ -27,10 +27,10 @@ module "eks" {
       policy_associations = {
         this = {
           policy_arn = v.policy_arn
-          access_scope = length(v.namespaces) > 0 ? {
-            type       = "namespace"
+          access_scope = {
+            type       = length(v.namespaces) > 0 ? "namespace" : "cluster"
             namespaces = v.namespaces
-          } : { type = "cluster" }
+          }
         }
       }
     }
