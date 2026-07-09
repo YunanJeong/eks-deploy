@@ -42,12 +42,12 @@ node_group_max_size     = 3
 # namespaces: 비우면 클러스터 전체, 채우면 해당 네임스페이스로 제한.
 access_entries = {}
 # access_entries = {
-#   iam_user_1 = {
+#   iam_user_0 = {
 #     principal_arn = "arn:aws:iam::123456789012:user/someone"
 #     policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 #     namespaces    = []
 #   }
-#   iam_user_2 = {
+#   iam_user_1 = {
 #     principal_arn = "arn:aws:iam::123456789012:user/another"
 #     policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 #     namespaces    = []
