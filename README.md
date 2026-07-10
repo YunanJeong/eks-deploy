@@ -21,7 +21,8 @@ terraform apply
 | `providers.tf` | Terraform 버전 요구사항, AWS 프로바이더 및 공통 태그(`default_tags`) |
 | `params.tf` | 입력 변수(`variable`) 선언 + 출력값(`output`) |
 | `vpc.tf` | 네트워크 — VPC, 서브넷, NAT/인터넷 게이트웨이 |
-| `eks.tf` | EKS 클러스터, Managed Node Group |
+| `eks.tf` | EKS 클러스터, Managed Node Group, 애드온 |
+| `iam.tf` | Pod Identity용 IAM 역할 및 연결(Karpenter/VPC CNI/EBS) |
 | `terraform.tfvars.example` | 변수값 샘플 템플릿 (**git 포함**) |
 | `terraform.tfvars` | 실제 배포용 변수값 (**git 제외**) |
 
