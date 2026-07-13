@@ -208,8 +208,9 @@ output "iam_roles_base" {
 output "iam_roles_app" {
   description = "Application Pod Identity roles created by this project (name => purpose)"
   value = {
-    "${aws_iam_role.karpenter.name}" = "Karpenter - 노드 오토스케일링(EC2 생성/종료)"
-    "${aws_iam_role.vpc_cni.name}"   = "VPC CNI - 파드 네트워킹(ENI/IP 관리)"
-    "${aws_iam_role.ebs_csi.name}"   = "EBS CSI - 영구 볼륨(EBS) 프로비저닝"
+    "${aws_iam_role.karpenter.name}"     = "Karpenter - 노드 오토스케일링(EC2 생성/종료)"
+    "${aws_iam_role.vpc_cni.name}"       = "VPC CNI - 파드 네트워킹(ENI/IP 관리)"
+    "${aws_iam_role.ebs_csi.name}"       = "EBS CSI - 영구 볼륨(EBS) 프로비저닝"
+    "${aws_iam_role.lb_controller.name}" = "LB Controller - ALB/NLB 프로비저닝"
   }
 }

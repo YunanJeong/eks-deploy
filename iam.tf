@@ -7,12 +7,13 @@
 
 # ⚠️ 하드코딩 주의: SA 이름은 실제 파드의 SA와 정확히 일치해야 Pod Identity가 작동함.
 #   vpc_cni / ebs_csi = 애드온 고정 SA (eks.tf 애드온 association에서 참조)
-#   karpenter        = Helm 설치 시 생성 SA (Helm 차트에서 이름 바꾸면 여기도 수정)
+#   karpenter / lb_controller = Helm 설치 시 생성 SA (Helm 차트에서 이름 바꾸면 여기도 수정)
 locals {
   pod_identity_sa = {
-    karpenter = "karpenter"
-    vpc_cni   = "aws-node"
-    ebs_csi   = "ebs-csi-controller-sa"
+    karpenter     = "karpenter"
+    vpc_cni       = "aws-node"
+    ebs_csi       = "ebs-csi-controller-sa"
+    lb_controller = "aws-load-balancer-controller"
   }
   pod_identity_namespace = "kube-system"
 }
@@ -63,6 +64,25 @@ resource "aws_iam_role_policy_attachment" "ebs_csi" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
+# LB Controller - ALB/NLB 프로비저닝. AWS 관리형 정책이 없어 공식 정책(JSON)을 부착.
+#   파일명(official-iam-policy-for-lb-controller-v2.14.1.json)에 공식 여부·버전 표기.
+#   아래 공식 iam_policy.json을 그대로 받은 것(내용 수정 X):
+#   https://github.com/kubernetes-sigs/aws-load-balancer-controller/raw/v2.14.1/docs/install/iam_policy.json
+#   ⚠️ LB Controller 버전 업 시 새 버전 파일로 교체(파일명 버전도 함께 변경) 후 아래 경로 수정.
+resource "aws_iam_role" "lb_controller" {
+  name               = "${var.cluster_name}-AmazonEKSLoadBalancerControllerRole"
+  assume_role_policy = data.aws_iam_policy_document.pod_identity_trust.json
+  tags               = { PodIdentity = "lb-controller" }
+}
+resource "aws_iam_policy" "lb_controller" {
+  name   = "${var.cluster_name}-AWSLoadBalancerControllerIAMPolicy"
+  policy = file("${path.module}/official-iam-policy-for-lb-controller-v2.14.1.json")
+}
+resource "aws_iam_role_policy_attachment" "lb_controller" {
+  role       = aws_iam_role.lb_controller.name
+  policy_arn = aws_iam_policy.lb_controller.arn
+}
+
 # --- SA <-> 역할 연결 (Pod Identity Association) ----------------------
 # 연결 위치가 두 파일로 갈리는 이유 (AWS 권장):
 #   - 애드온인 것(VPC CNI, EBS CSI) -> eks.tf 애드온이 소유 (삭제 시 연결도 함께 정리)
@@ -75,4 +95,12 @@ resource "aws_eks_pod_identity_association" "karpenter" {
   service_account = local.pod_identity_sa.karpenter # "karpenter"
   role_arn        = aws_iam_role.karpenter.arn
   tags            = { Name = "${var.cluster_name}-karpenter", PodIdentity = "karpenter" }
+}
+
+resource "aws_eks_pod_identity_association" "lb_controller" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = local.pod_identity_namespace
+  service_account = local.pod_identity_sa.lb_controller # "aws-load-balancer-controller"
+  role_arn        = aws_iam_role.lb_controller.arn
+  tags            = { Name = "${var.cluster_name}-lb-controller", PodIdentity = "lb-controller" }
 }
