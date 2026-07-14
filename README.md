@@ -3,15 +3,7 @@
 Terraform으로 AWS에 EKS 클러스터 + VPC를 구축하는 IaC 프로젝트.
 AWS 공식 모듈(VPC, EKS) 기반이며, `vpc_id` 지정 시 **기존 네트워크에 붙고** 비우면 **전용 VPC를 신규 생성**함.
 
-```bash
-cd infra/envs/dev                              # 환경 디렉토리로 이동 (prod도 동일)
-cp terraform.tfvars.example terraform.tfvars   # 값 수정 (최소 cluster_name)
-terraform init                                 # backend.tf의 S3 버킷명 먼저 교체
-terraform plan                                 # ⚠️ '0 to destroy' 확인
-terraform apply
-```
-
-> ⚠️ **기존 클러스터와 네트워크를 공유해 배포한다면** apply 전에 반드시 `terraform plan`에서 **`0 to destroy` / replace 없음**을 확인할 것. → [기존 시스템 영향도](#️-기존-시스템-영향도)
+> ⚠️ **기존 클러스터와 네트워크를 공유해 배포한다면** apply 전에 반드시 `terraform plan`에서 **`0 to destroy` / replace 없음**을 확인할 것.
 
 ---
 
@@ -60,6 +52,25 @@ eks-deploy/
 | **일괄 태깅** | `default_tags`로 모든 리소스에 공통 태그 |
 | **블루/그린** | `cluster_name`·`cluster_version`을 바꿔 신규 클러스터를 나란히 세움 |
 
+## 🚀 사용 방법
+
+**사전 요구사항** — [Terraform CLI](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://aws.amazon.com/ko/cli/) 설치 + `aws configure`
+
+작업할 **환경 디렉토리로 이동**해서 진행함 (dev 예시, prod도 동일):
+
+```bash
+cd infra/envs/dev                               # 환경 = 디렉토리 (prod도 동일)
+cp terraform.tfvars.example terraform.tfvars    # 값 수정 (최소 cluster_name)
+terraform init -backend-config="bucket=<버킷명>"   # 옵션 없이 치면 대화형으로 물어봄
+terraform plan
+terraform apply
+aws eks update-kubeconfig --region <AWS_REGION> --name <CLUSTER_NAME>   # kubeconfig 갱신
+```
+
+- **환경 전환은 `cd`로 끝** — 폴더가 곧 환경·state라 헷갈릴 일 없음.
+- **state 버킷명은 보안상 코드(`backend.tf`)에 없음** → 위처럼 init 시 지정(옵션) 또는 대화형 입력. 한 번 init하면 이후엔 불필요.
+- `terraform.tfvars`는 자동 로드·`.gitignore` 제외. 커밋 대상은 `.example`뿐.
+
 ## ⚙️ 설정 참고
 
 전체 변수와 기본값은 **`terraform.tfvars.example`** 에 주석과 함께 정리돼 있음. 아래는 알아둘 핵심만.
@@ -68,33 +79,7 @@ eks-deploy/
 - **노드 방식** — EKS Managed Node Group으로 기본 노드를 구성. **EKS Auto Mode는 추가 비용이 발생하므로 사용하지 않고**, 비용 절감을 위해 **Karpenter를 Helm 차트로 직접 설치·관리**함 (이 Terraform 범위 밖).
 - **인증 모드** — 기본 `API_AND_CONFIG_MAP` (Access Entry + 레거시 `aws-auth` ConfigMap 병행). 레거시 앱 없으면 `API`로 좁힐 수 있음.
 - **엔드포인트** — 원격 `kubectl`용 퍼블릭 활성화. 운영에선 `cluster_endpoint_public_access_cidrs`로 접근 IP를 좁힐 것.
-
-## 🚀 사용 방법
-
-**사전 요구사항** — [Terraform CLI](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://aws.amazon.com/ko/cli/) 설치 + `aws configure`
-
-작업할 **환경 디렉토리로 이동**해서 진행함 (dev 예시, prod도 동일):
-
-```bash
-cd infra/envs/dev
-
-# 1. 변수 설정 (샘플 복사 후 값 수정, 최소 cluster_name)
-cp terraform.tfvars.example terraform.tfvars
-
-# 2. backend.tf의 bucket을 실제 S3 버킷으로 교체 후 초기화
-terraform init
-
-# 3. 변경 확인 → 4. 배포
-terraform plan
-terraform apply
-
-# 5. 로컬 kubeconfig 갱신
-aws eks update-kubeconfig --region <AWS_REGION> --name <CLUSTER_NAME>
-```
-
-- **환경 전환은 `cd`로 끝** — `infra/envs/prod`로 이동하면 prod 작업. 폴더가 곧 환경·state라 헷갈릴 일 없음.
-- `terraform.tfvars`는 자동 로드되며 `.gitignore` 제외라 민감값 넣기 안전. 커밋 대상은 `terraform.tfvars.example`뿐.
-- state는 `backend.tf`(S3)로 관리되며 env별 key로 분리됨 (`eks/dev`, `eks/prod`).
+- **KMS/로그 비활성** — Secret 암호화 KMS·컨트롤플레인 CloudWatch 로그는 끔(`kms:*`/`logs:*` 권한 불필요). 컴플라이언스 필요 시 활성화.
 
 ## 🛡️ 기존 시스템 영향도
 
@@ -115,10 +100,10 @@ terraform plan -no-color | grep -E 'Plan:|will be destroyed|will be replaced'
 
 ## ⚠️ 주의 사항
 
-- **비용** — EKS(시간당 ~$0.10), NAT Gateway, EC2, KMS 키 과금. 테스트 후 `terraform destroy` 필수.
+- **비용** — EKS 클러스터(시간당 ~$0.10), NAT Gateway, EC2 노드에 과금. 테스트 후 `terraform destroy` 필수.
 - **NAT Gateway** — 비용용 `single_nat_gateway = true`. 운영은 가용성 위해 `false`(AZ별) 권장.
 - **IAM 권한** — 실행 주체에 VPC·EKS 생성 권한 필요 (최소 `AdministratorAccess` 상응).
-- **상태 관리** — 각 env `backend.tf`로 S3에 state 저장(env별 key 분리). `use_lockfile=true`로 S3 자체 잠금(DynamoDB 불필요). 배포 전 `backend.tf`의 버킷명을 실제 값으로 교체할 것.
+- **상태 관리** — 각 env `backend.tf`로 S3에 state 저장(env별 key 분리). `use_lockfile=true`로 S3 자체 잠금(DynamoDB 불필요). 버킷명은 코드에 없고 init 시 주입(public 노출 방지).
 - **민감 정보** — `terraform.tfvars`·`*.tfstate`는 git 제외. 민감값은 이 파일 또는 `TF_VAR_xxx`로만.
 - **콘솔 관리 시 drift** — 배포 후 콘솔에서 바꾸면 state와 어긋남. 이후 `apply`는 코드 기준으로 되돌리므로 주의.
 
@@ -130,7 +115,7 @@ terraform destroy
 ```
 
 <details>
-<summary><b>state를 버린 경우 — 콘솔/CLI 수동 삭제 참고</b></summary>
+<summary><b>state를 버린 경우 — 콘솔/CLI 수동 삭제</b></summary>
 
 모든 이름은 `cluster_name` 기반. **아래 순서(의존성)대로** 삭제.
 
@@ -141,11 +126,11 @@ terraform destroy
 5. **인증/권한** — OIDC 프로바이더(IRSA), Access Entry·정책 연결
 6. **네트워크** (신규 생성 시) — NAT → 서브넷 → IGW → 라우팅 테이블 → VPC
 
-> IAM 역할은 apply 하단의 `iam_roles_base`(기본 생성) / `iam_roles_app`(앱용) output으로 목록 확인 가능.
+IAM 역할 목록은 apply 하단의 `iam_roles_base`(기본 생성) / `iam_roles_app`(앱용) output으로 확인 가능.
 
 **⚠️ 숨은 리소스 (남으면 과금·삭제 차단)**
 - **EIP** — NAT 삭제해도 탄력적 IP는 남아 과금. 별도 해제.
 - **로드밸런서·ENI** — `Service type=LoadBalancer` 썼다면 AWS 생성 ELB·SG가 남아 VPC 삭제 차단.
-- **KMS 키** — 즉시 삭제 안 되고 7~30일 대기 상태 전환.
+- **KMS 키** — (활성화한 경우) 즉시 삭제 안 되고 7~30일 대기 상태 전환.
 
 </details>
