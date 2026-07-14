@@ -1,13 +1,14 @@
 #======================================================================
 # dev state 백엔드 (S3)
-#   - 버킷/DynamoDB(또는 use_lockfile)는 사전 생성 필요.
-#   - bucket 이름은 실제 값으로 교체할 것 (계정ID/랜덤 섞어 예측 불가하게).
-#   - prod와 같은 버킷을 쓰되 key로 분리함 (env별 독립 state).
+#   - bucket은 public 노출 방지 위해 코드에 두지 않음. init 시 지정:
+#       terraform init -backend-config="bucket=<버킷명>"   (옵션 방식)
+#       terraform init                                      (대화형: 버킷명 물어봄)
+#   - 버킷/잠금은 사전 생성 필요. dev/prod 같은 버킷을 key로 분리함.
 #======================================================================
 
 terraform {
   backend "s3" {
-    bucket       = "CHANGE-ME-tfstate-bucket"
+    # bucket = "my-tfstate-bucket"  # 코드에 두지 않음. init 시 주입하거나 대화형 입력.
     key          = "eks/dev/terraform.tfstate"
     region       = "ap-northeast-2"
     encrypt      = true
