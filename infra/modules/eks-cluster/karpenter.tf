@@ -1,0 +1,38 @@
+#======================================================================
+# Karpenter - 전용 서브모듈로 IAM/SQS/association 일괄 관리
+#   - 컨트롤러 IAM 역할 + 권한 정책(버전 대응) + SQS 인터럽션 큐
+#     + 노드 IAM 역할 + Pod Identity association 을 모두 생성.
+#   - Karpenter 컨트롤러(파드) 자체는 Helm으로 설치 (apps/karpenter, 범위 밖).
+#   - LB Controller처럼 정책을 수동으로 안 박는 이유: Karpenter 정책은 SQS 큐·
+#     노드역할 ARN 등 리소스에 종속돼 있어 서브모듈이 참조해 생성하는 게 정석.
+#======================================================================
+
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "~> 20.0"
+
+  cluster_name = module.eks.cluster_name
+
+  # 인증: Pod Identity 방식 + association 자동 생성 (SA: karpenter / kube-system)
+  enable_pod_identity             = true
+  create_pod_identity_association = true
+  namespace                       = "kube-system"
+  service_account                 = "karpenter"
+
+  # 컨트롤러 IAM 역할 이름 고정 (기본은 KarpenterController+랜덤 접미사).
+  iam_role_name            = "${var.cluster_name}-KarpenterController"
+  iam_role_use_name_prefix = false
+
+  # 컨트롤러 권한: v1 기준 정책 부여 (Karpenter v1.x)
+  enable_v1_permissions = true
+
+  # SQS 인터럽션 큐 생성 (Spot 중단·EC2 이벤트 처리)
+  enable_spot_termination = true
+
+  # 노드 IAM 역할: Karpenter가 띄우는 노드가 쓸 역할. CNI 정책 등 부착.
+  create_node_iam_role          = true
+  node_iam_role_use_name_prefix = false
+  node_iam_role_name            = "${var.cluster_name}-KarpenterNode"
+
+  tags = var.tags
+}

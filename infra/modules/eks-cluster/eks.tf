@@ -106,7 +106,7 @@ module "eks" {
       # state를 버리고 새 cluster_name으로 재배포해도 이름이 겹치지 않도록 함.
       name                     = "${var.cluster_name}-main"
       use_name_prefix          = false
-      iam_role_name            = "${var.cluster_name}-main-node"
+      iam_role_name            = "${var.cluster_name}-MainNodeGroup"
       iam_role_use_name_prefix = false
 
       instance_types = var.instance_types

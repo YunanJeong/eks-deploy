@@ -69,9 +69,22 @@ output "iam_roles_base" {
 output "iam_roles_app" {
   description = "Application Pod Identity roles created by this project (name => purpose)"
   value = {
-    "${aws_iam_role.karpenter.name}"     = "Karpenter - 노드 오토스케일링(EC2 생성/종료)"
-    "${aws_iam_role.vpc_cni.name}"       = "VPC CNI - 파드 네트워킹(ENI/IP 관리)"
-    "${aws_iam_role.ebs_csi.name}"       = "EBS CSI - 영구 볼륨(EBS) 프로비저닝"
-    "${aws_iam_role.lb_controller.name}" = "LB Controller - ALB/NLB 프로비저닝"
+    "${module.karpenter.iam_role_name}"      = "Karpenter 컨트롤러 - 노드 오토스케일링(EC2 생성/종료)"
+    "${module.karpenter.node_iam_role_name}" = "Karpenter 노드 - Karpenter가 띄운 EC2용 역할"
+    "${aws_iam_role.vpc_cni.name}"           = "VPC CNI - 파드 네트워킹(ENI/IP 관리)"
+    "${aws_iam_role.ebs_csi.name}"           = "EBS CSI - 영구 볼륨(EBS) 프로비저닝"
+    "${aws_iam_role.lb_controller.name}"     = "LB Controller - ALB/NLB 프로비저닝"
+  }
+}
+
+# Karpenter Helm 설치 시 필요한 값 (컨트롤러 역할·SQS 큐·노드 역할)
+output "karpenter" {
+  description = "Karpenter 설치용 값 (Helm/EC2NodeClass에서 사용)"
+  value = {
+    iam_role_arn    = module.karpenter.iam_role_arn       # 컨트롤러 역할
+    node_iam_role   = module.karpenter.node_iam_role_name # EC2NodeClass의 role
+    queue_name      = module.karpenter.queue_name         # Helm settings.interruptionQueue
+    service_account = module.karpenter.service_account
+    namespace       = module.karpenter.namespace
   }
 }

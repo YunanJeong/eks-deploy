@@ -119,10 +119,13 @@ terraform destroy
 
 모든 이름은 `cluster_name` 기반. **아래 순서(의존성)대로** 삭제.
 
-1. **노드** — Managed Node Group(`<name>-main`) → 노드 IAM 역할(`<name>-main-node`)·정책 → Launch Template
+1. **노드** — Managed Node Group(`<name>-main`) → 노드 IAM 역할(`<name>-MainNodeGroup`)·정책 → Launch Template
 2. **애드온** — vpc-cni, coredns, kube-proxy, pod-identity-agent, ebs-csi, metrics-server (클러스터와 함께 정리됨)
 3. **컨트롤 플레인** — EKS 클러스터 → 클러스터 IAM 역할(`<name>-cluster-*`) → 보안 그룹
-4. **앱용 IAM 역할** (Pod Identity, 이 프로젝트가 생성) — `<name>-Karpenter`, `<name>-AmazonEKSPodIdentityAmazonVPCCNIRole`, `<name>-AmazonEKSPodIdentityAmazonEBSCSI`, `<name>-AmazonEKSLoadBalancerControllerRole` → 연결된 정책
+4. **앱용 IAM 역할** (Pod Identity, 이 프로젝트가 생성)
+   - `<name>-KarpenterController`, `<name>-KarpenterNode`, Karpenter SQS 큐(`Karpenter-<name>`)
+   - `<name>-AmazonEKSPodIdentityAmazonVPCCNIRole`, `<name>-AmazonEKSPodIdentityAmazonEBSCSI`, `<name>-AmazonEKSLoadBalancerControllerRole`
+   - → 각 연결된 정책
 5. **인증/권한** — OIDC 프로바이더(IRSA), Access Entry·정책 연결
 6. **네트워크** (신규 생성 시) — NAT → 서브넷 → IGW → 라우팅 테이블 → VPC
 

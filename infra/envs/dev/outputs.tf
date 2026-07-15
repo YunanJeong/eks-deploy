@@ -46,3 +46,8 @@ output "iam_roles_app" {
   description = "Application Pod Identity roles created by this project"
   value       = module.eks.iam_roles_app
 }
+
+output "karpenter" {
+  description = "Karpenter 설치용 값 (Helm/EC2NodeClass에서 사용)"
+  value       = module.eks.karpenter
+}

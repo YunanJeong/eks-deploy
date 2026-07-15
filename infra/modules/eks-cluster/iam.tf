@@ -7,10 +7,10 @@
 
 # ⚠️ 하드코딩 주의: SA 이름은 실제 파드의 SA와 정확히 일치해야 Pod Identity가 작동함.
 #   vpc_cni / ebs_csi = 애드온 고정 SA (eks.tf 애드온 association에서 참조)
-#   karpenter / lb_controller = Helm 설치 시 생성 SA (Helm 차트에서 이름 바꾸면 여기도 수정)
+#   lb_controller     = Helm 설치 시 생성 SA (Helm 차트에서 이름 바꾸면 여기도 수정)
+#   * Karpenter는 전용 서브모듈(karpenter.tf)이 역할·정책·SQS·association까지 관리함.
 locals {
   pod_identity_sa = {
-    karpenter     = "karpenter"
     vpc_cni       = "aws-node"
     ebs_csi       = "ebs-csi-controller-sa"
     lb_controller = "aws-load-balancer-controller"
@@ -21,7 +21,7 @@ locals {
 # --- IAM 역할 (Roles) -------------------------------------------------
 
 # 공통 신뢰 정책 = "누가 이 역할을 맡을 수 있나" -> EKS Pod Identity만 허용.
-#   (역할엔 신뢰 정책 + 권한 정책이 붙음. 3개 역할이 신뢰 주체가 같아 하나를 공유.)
+#   (역할엔 신뢰 정책 + 권한 정책이 붙음. 아래 역할들이 신뢰 주체가 같아 하나를 공유.)
 data "aws_iam_policy_document" "pod_identity_trust" {
   statement {
     effect  = "Allow"
@@ -31,15 +31,6 @@ data "aws_iam_policy_document" "pod_identity_trust" {
       identifiers = ["pods.eks.amazonaws.com"]
     }
   }
-}
-
-# Karpenter - 노드 오토스케일링(EC2 생성/종료).
-# ⚠️ 주의: 아직 권한 정책이 없음. 버전(v0.x / v1.x)마다 필요 권한이 달라서,
-#   Karpenter Helm 배포 시점에 맞는 권한 정책을 반드시 부여할 것.
-resource "aws_iam_role" "karpenter" {
-  name               = "${var.cluster_name}-Karpenter"
-  assume_role_policy = data.aws_iam_policy_document.pod_identity_trust.json
-  tags               = { PodIdentity = "karpenter" }
 }
 
 # VPC CNI - 파드 네트워킹(ENI/IP). AWS 관리형 정책.
@@ -84,18 +75,11 @@ resource "aws_iam_role_policy_attachment" "lb_controller" {
 }
 
 # --- SA <-> 역할 연결 (Pod Identity Association) ----------------------
-# 연결 위치가 두 파일로 갈리는 이유 (AWS 권장):
+# 연결 위치가 갈리는 기준 (AWS 권장):
 #   - 애드온인 것(VPC CNI, EBS CSI) -> eks.tf 애드온이 소유 (삭제 시 연결도 함께 정리)
-#   - 애드온 아닌 것(Karpenter, Helm 배포) -> 묶을 애드온이 없어 여기 standalone
+#   - LB Controller(Helm 배포) -> 묶을 애드온이 없어 여기 standalone
+#   - Karpenter -> 전용 서브모듈(karpenter.tf)이 association까지 자체 생성
 # 작동 전제: eks.tf의 eks-pod-identity-agent 애드온.
-
-resource "aws_eks_pod_identity_association" "karpenter" {
-  cluster_name    = module.eks.cluster_name
-  namespace       = local.pod_identity_namespace
-  service_account = local.pod_identity_sa.karpenter # "karpenter"
-  role_arn        = aws_iam_role.karpenter.arn
-  tags            = { Name = "${var.cluster_name}-karpenter", PodIdentity = "karpenter" }
-}
 
 resource "aws_eks_pod_identity_association" "lb_controller" {
   cluster_name    = module.eks.cluster_name
