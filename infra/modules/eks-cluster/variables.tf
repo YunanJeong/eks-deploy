@@ -21,7 +21,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "EKS Kubernetes version"
   type        = string
-  default     = "1.33"
+  default     = "1.36"
 }
 
 # 클러스터 인증 모드

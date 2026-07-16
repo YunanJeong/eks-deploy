@@ -18,7 +18,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "EKS Kubernetes version"
   type        = string
-  default     = "1.33"
+  default     = "1.36"
 }
 
 variable "authentication_mode" {

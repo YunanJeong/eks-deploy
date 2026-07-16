@@ -10,8 +10,8 @@ cluster_name = "eks-cluster-C"
 # 배포 리전 (기본값: ap-northeast-2)
 aws_region = "ap-northeast-2"
 
-# Kubernetes 버전 — 블루/그린 업그레이드 시 이 값을 올림 (기본값: 1.33)
-cluster_version = "1.33"
+# Kubernetes 버전 — 블루/그린 업그레이드 시 이 값을 올림 (기본값: 1.36)
+cluster_version = "1.36"
 
 # 인증 모드 (기본값: API_AND_CONFIG_MAP = Access Entry + 레거시 ConfigMap 병행)
 #   레거시 앱이 없으면 "API"(Access Entry 전용)로 좁힐 수 있음
