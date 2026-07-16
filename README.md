@@ -52,6 +52,18 @@ eks-deploy/
 | **일괄 태깅** | `default_tags`로 모든 리소스에 공통 태그 |
 | **블루/그린** | `cluster_name`·`cluster_version`을 바꿔 신규 클러스터를 나란히 세움 |
 
+### 보안그룹 3종 (자동 생성)
+
+| 보안그룹 | 생성 주체 | 역할 |
+|----------|-----------|------|
+| `eks-cluster-sg-<name>-*` | AWS(EKS) 자동 | 컨트롤플레인 ENI+노드에 붙어 self 전체 허용(기본 통신). 우리가 규칙 수정 불가 |
+| `<name>-cluster-*` | EKS 모듈 | 컨트롤플레인(API 서버) 쪽. 노드→API(443) 등 커스텀 규칙용. 콘솔 "추가 보안 그룹" |
+| `<name>-node-*` | EKS 모듈 | 노드에 붙음. 노드↔노드(DNS 53·**ephemeral=파드 간 통신**) + 컨트롤플레인→노드(kubelet 10250·웹훅) |
+
+- 노드그룹 노드에는 **node SG만** 붙는다(primary는 기본 미부착). node SG의 self 규칙으로 노드 간 통신이 커버됨.
+- **파드 간 통신은 `ephemeral(1025-65535)` 규칙을 타고 노드 사이를 오간다.** (DNS만 53으로 별도)
+- 모듈이 포트별로 세분화한 이유는 최소 권한(primary의 self 전체 허용보다 공격면 축소).
+
 ## 🚀 사용 방법
 
 **사전 요구사항** — [Terraform CLI](https://developer.hashicorp.com/terraform/downloads), [AWS CLI](https://aws.amazon.com/ko/cli/) 설치 + `aws configure`

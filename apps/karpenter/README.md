@@ -9,6 +9,9 @@
   (`kube-system` / SA `karpenter`)을 생성해 둠.
   ⚠️ 단, **컨트롤러 권한 정책은 아직 비어 있음** — 아래 IAM 정책 부여 단계 필요.
 - **pod-identity-agent 애드온**: `eks.tf`에서 설치됨 (association 작동 전제).
+- **discovery 태그는 서브넷과 보안그룹 딱 둘에만 필요**하다. (AMI는 alias로,
+  노드 역할은 직접 지정하므로 태그 불필요) 그 보안그룹은 기본 노드그룹 노드가 쓰는
+  node SG여야 Karpenter 노드도 컨트롤플레인·노드 간 통신이 동일하게 열린다.
 - **보안그룹 discovery**: node SG에 `karpenter.sh/discovery=<cluster_name>` 태그가
   Terraform(eks.tf의 node_security_group_tags)으로 자동 등록됨. Karpenter 노드는 이
   node SG를 물려 기본 노드그룹과 동일한 통신 규칙을 갖는다.
