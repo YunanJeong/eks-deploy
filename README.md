@@ -56,12 +56,12 @@ eks-deploy/
 
 | 보안그룹 | 생성 주체 | 역할 |
 |----------|-----------|------|
-| `eks-cluster-sg-<name>-*` | AWS(EKS) 자동 | 컨트롤플레인 ENI+노드에 붙어 self 전체 허용(기본 통신). 우리가 규칙 수정 불가 |
+| `eks-cluster-sg-<name>-*` | AWS(EKS) 자동 | 컨트롤플레인 ENI에 붙음. self 전체 허용 규칙 보유. 우리 모듈은 노드엔 안 붙임(node SG 사용). 규칙 수정 불가 |
 | `<name>-cluster-*` | EKS 모듈 | 컨트롤플레인(API 서버) 쪽. 노드→API(443) 등 커스텀 규칙용. 콘솔 "추가 보안 그룹" |
 | `<name>-node-*` | EKS 모듈 | 노드에 붙음. 노드↔노드(DNS 53·**ephemeral=파드 간 통신**) + 컨트롤플레인→노드(kubelet 10250·웹훅) |
 
 - 노드그룹 노드에는 **node SG만** 붙는다(primary는 기본 미부착). node SG의 self 규칙으로 노드 간 통신이 커버됨.
-- **파드 간 통신은 `ephemeral(1025-65535)` 규칙을 타고 노드 사이를 오간다.** (DNS만 53으로 별도)
+- **노드 간 파드 통신은 `ephemeral(1025-65535)` self 규칙으로 허용된다.** (DNS만 53으로 별도)
 - 모듈이 포트별로 세분화한 이유는 최소 권한(primary의 self 전체 허용보다 공격면 축소).
 
 ## 🚀 사용 방법
@@ -107,7 +107,7 @@ terraform plan -no-color | grep -E 'Plan:|will be destroyed|will be replaced'
 
 - ✅ 기존 VPC/서브넷은 **참조만** 하고 state로 관리 안 함 → 수정·삭제 대상 아님
 - ✅ 생성물은 전부 `cluster_name` 접두사 **신규 리소스** → 이름 충돌 없음
-- ✅ EKS가 기존 서브넷에 `kubernetes.io/cluster/<name>=shared` 태그를 **추가**하지만 기존 태그·동작은 유지
+- ✅ 기존 서브넷에 `kubernetes.io/cluster/<name>` 등 태그가 **추가**될 수 있으나 기존 태그·동작은 유지(태그는 더해질 뿐 덮어쓰지 않음)
 - ⚠️ 서브넷 여유 IP만 충분하면 됨 (신규 노드/파드가 IP를 나눠 씀)
 
 ## ⚠️ 주의 사항
@@ -132,8 +132,8 @@ terraform destroy
 모든 이름은 `cluster_name` 기반. **아래 순서(의존성)대로** 삭제.
 
 1. **노드** — Managed Node Group(`<name>-main`) → 노드 IAM 역할(`<name>-MainNodeGroup`)·정책 → Launch Template
-2. **애드온** — vpc-cni, coredns, kube-proxy, pod-identity-agent, ebs-csi, metrics-server (클러스터와 함께 정리됨)
-3. **컨트롤 플레인** — EKS 클러스터 → 클러스터 IAM 역할(`<name>-cluster-*`) → 보안 그룹
+2. **애드온** — vpc-cni, coredns, kube-proxy, pod-identity-agent, ebs-csi, metrics-server (클러스터 삭제 시 함께 사라짐. 단 연결된 IAM 역할은 4번에서 별도 삭제)
+3. **컨트롤 플레인** — EKS 클러스터 → 클러스터 IAM 역할(`<name>-cluster-` 접두사) → 보안 그룹(`<name>-cluster-*`·`<name>-node-*`)
 4. **앱용 IAM 역할** (Pod Identity, 이 프로젝트가 생성)
    - `<name>-KarpenterController`, `<name>-KarpenterNode`, Karpenter SQS 큐(`Karpenter-<name>`)
    - `<name>-AmazonEKSPodIdentityAmazonVPCCNIRole`, `<name>-AmazonEKSPodIdentityAmazonEBSCSI`, `<name>-AmazonEKSLoadBalancerControllerRole`
