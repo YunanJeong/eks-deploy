@@ -19,9 +19,8 @@ module "karpenter" {
   namespace                       = "kube-system"
   service_account                 = "karpenter"
 
-  # 컨트롤러 IAM 역할 이름 고정 (기본은 KarpenterController+랜덤 접미사).
-  iam_role_name            = "${var.cluster_name}-KarpenterController"
-  iam_role_use_name_prefix = false
+  # 컨트롤러 IAM 역할 (이름은 접두사로, 뒤에 고유값 자동 부착 - default)
+  iam_role_name = "${var.cluster_name}-KarpenterController"
 
   # 컨트롤러 권한: v1 기준 정책 부여 (Karpenter v1.x)
   enable_v1_permissions = true
@@ -30,9 +29,8 @@ module "karpenter" {
   enable_spot_termination = true
 
   # 노드 IAM 역할: Karpenter가 띄우는 노드가 쓸 역할. CNI 정책 등 부착.
-  create_node_iam_role          = true
-  node_iam_role_use_name_prefix = false
-  node_iam_role_name            = "${var.cluster_name}-KarpenterNode"
+  create_node_iam_role = true
+  node_iam_role_name   = "${var.cluster_name}-KarpenterNode"
 
   tags = var.tags
 }

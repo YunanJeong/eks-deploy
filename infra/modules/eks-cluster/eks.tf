@@ -101,13 +101,13 @@ module "eks" {
   # EKS Managed Node Groups 설정
   eks_managed_node_groups = {
     main = {
-      # 노드그룹 이름과 IAM 역할을 클러스터명 기반으로 고정.
-      # (기본 name_prefix 모드는 랜덤 접미사가 붙어 cluster_name으로 구분되지 않음)
-      # state를 버리고 새 cluster_name으로 재배포해도 이름이 겹치지 않도록 함.
-      name                     = "${var.cluster_name}-main"
-      use_name_prefix          = false
-      iam_role_name            = "${var.cluster_name}-MainNodeGroup"
-      iam_role_use_name_prefix = false
+      name = "${var.cluster_name}-main"
+      # use_name_prefix=true(default)를 명시적으로 둠. 노드그룹 본체는 교체 시 새 것을
+      # 먼저 만들고 기존 것을 지우는데(create_before_destroy), 이름이 같으면 잠깐 공존이
+      # 안 돼 409가 난다. 접두사 뒤 고유값으로 이름이 겹치지 않게 하는 게 필수라 명시함.
+      use_name_prefix = true
+
+      iam_role_name = "${var.cluster_name}-MainNodeGroup"
 
       instance_types = var.instance_types
 
