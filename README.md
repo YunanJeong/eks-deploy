@@ -30,8 +30,9 @@ eks-deploy/
 │       │   └── terraform.tfvars.example# 템플릿 (git 포함)
 │       └── prod/                       # dev와 동일 구성 (backend key=eks/prod)
 └── apps/                               # 앱 (Helm, 별도 배포 — 이 Terraform 범위 밖)
-    ├── karpenter/
-    └── aws-lb-controller/
+    ├── COMPATIBILITY.md                 # 앱 ↔ K8s 호환성 이력 (업그레이드 시 여기부터)
+    ├── karpenter/                       # 차트(.tgz) + values.yaml + nodepool_nodeclass_guide.yaml(샘플)
+    └── aws-lb-controller/               # 차트(.tgz) + values.yaml
 ```
 
 > ### 📌 디렉토리 분리 원칙 (중요)

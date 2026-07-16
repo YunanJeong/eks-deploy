@@ -1,0 +1,25 @@
+# Karpenter - Helm values
+# <> 부분을 terraform output(karpenter)에서 채운다.
+#   settings.clusterName        : karpenter.service_account 아님 주의 → cluster_name
+#   settings.interruptionQueue  : terraform output karpenter → queue_name
+#   serviceAccount.name         : terraform output karpenter → service_account ("karpenter")
+
+settings:
+  clusterName: <cluster_name>
+  interruptionQueue: <queue_name>   # SQS 인터럽션 큐 (인프라 karpenter 서브모듈이 생성)
+
+# Pod Identity association(인프라에서 생성)이 권한을 연결하므로 SA는 생성만.
+# 이름은 association의 service_account와 반드시 일치. (annotation 불필요 = Pod Identity)
+serviceAccount:
+  create: true
+  name: karpenter
+
+# 컨트롤러 자원 요청/제한 (기본값. 노드 수 많아지면 상향)
+controller:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

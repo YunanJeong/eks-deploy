@@ -1,0 +1,15 @@
+# AWS Load Balancer Controller - Helm values
+# <> 부분을 배포 대상 값으로 채운다. (terraform output에서 확인)
+#   clusterName : cluster_name
+#   region      : aws_region
+#   vpcId       : terraform output vpc_id
+
+clusterName: <cluster_name>
+region: <aws_region>
+vpcId: <vpc_id>
+
+# Pod Identity association이 SA에 권한을 연결하므로 SA는 생성만 하면 됨.
+# 이름은 iam.tf association 값과 반드시 일치. (annotation은 IRSA 방식일 때만 필요 → 여기선 불필요)
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller

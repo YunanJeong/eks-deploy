@@ -1,0 +1,59 @@
+# Karpenter NodePool + EC2NodeClass
+# Helm 설치 후 kubectl apply. <> 부분을 채운다.
+#   role     : terraform output karpenter → node_iam_role  (<cluster_name>-KarpenterNode)
+#   서브넷    : 기존 클러스터가 쓰던 서브넷의 discovery 태그값 또는 서브넷 ID 직접 지정
+#   보안그룹  : 인프라가 node SG에 붙인 karpenter.sh/discovery=<cluster_name>
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  # Karpenter가 띄우는 노드가 사용할 IAM 역할 (인프라에서 생성됨)
+  role: <cluster_name>-KarpenterNode
+
+  # AMI: EKS 최적화 AL2023 (alias로 최신 참조. 클러스터 버전에 맞춰 자동)
+  amiSelectorTerms:
+    - alias: al2023@latest
+
+  # 서브넷: 기존 VPC 서브넷을 태그 또는 ID로 지정.
+  #   (신규 VPC 배포였다면 인프라가 프라이빗 서브넷에 =<cluster_name> 태그를 붙여둠)
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <기존 서브넷 discovery 값 또는 cluster_name>
+    # - id: subnet-xxxxxxxx   # 태그 대신 ID로 직접 지정도 가능
+
+  # 보안그룹: 인프라가 node SG에 붙인 discovery 태그 (기본 노드그룹과 동일 통신)
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <cluster_name>
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+      # 프로비저닝 요구조건 (예시: 온디맨드+스팟, amd64, 일반 인스턴스 카테고리)
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["on-demand", "spot"]
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+  # 노드 통합(비용 최적화): 비거나 저활용이면 정리
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+  # 클러스터 전체 노드 상한 (폭주 방지)
+  limits:
+    cpu: "1000"
