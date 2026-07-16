@@ -52,6 +52,13 @@ module "eks" {
   create_cloudwatch_log_group = false
   cluster_enabled_log_types   = []
 
+  # --- 노드 보안그룹 태그 ---
+  # Karpenter가 EC2NodeClass의 securityGroupSelectorTerms로 이 node SG를 찾도록
+  # discovery 태그를 붙인다. (merge라 기존 태그는 보존되고 이 태그만 추가됨)
+  node_security_group_tags = {
+    "karpenter.sh/discovery" = var.cluster_name
+  }
+
   # --- 관리형 애드온 ---
   # 필수(없으면 클러스터 동작 불가): vpc-cni, coredns, kube-proxy
   # 준필수(본 구성 전제): eks-pod-identity-agent, aws-ebs-csi-driver

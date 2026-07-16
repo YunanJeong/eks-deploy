@@ -9,8 +9,13 @@
   (`kube-system` / SA `karpenter`)을 생성해 둠.
   ⚠️ 단, **컨트롤러 권한 정책은 아직 비어 있음** — 아래 IAM 정책 부여 단계 필요.
 - **pod-identity-agent 애드온**: `eks.tf`에서 설치됨 (association 작동 전제).
-- **discovery 태그**: 노드를 띄울 서브넷·보안그룹에 `karpenter.sh/discovery=<값>` 태그가
-  있어야 한다. 기존 클러스터 것을 재사용하면 그 태그값(예: 기존 클러스터명)을 그대로 참조.
+- **보안그룹 discovery**: node SG에 `karpenter.sh/discovery=<cluster_name>` 태그가
+  Terraform(eks.tf의 node_security_group_tags)으로 자동 등록됨. Karpenter 노드는 이
+  node SG를 물려 기본 노드그룹과 동일한 통신 규칙을 갖는다.
+- **서브넷 discovery**:
+  - 신규 VPC 생성 시 → vpc.tf가 프라이빗 서브넷에 `karpenter.sh/discovery=<cluster_name>` 자동 등록.
+  - 기존 VPC 사용 시 → Terraform이 태깅하지 않으므로, EC2NodeClass에서 기존 서브넷을
+    태그(기존 클러스터 discovery 값)나 ID로 직접 지정한다.
 
 ## 버전
 
@@ -50,11 +55,11 @@ apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata: { name: default }
 spec:
-  role: <노드 IAM 역할명>          # Karpenter가 띄우는 노드가 쓸 역할
-  subnetSelectorTerms:
-    - tags: { karpenter.sh/discovery: <태그값> }
-  securityGroupSelectorTerms:
-    - tags: { karpenter.sh/discovery: <태그값> }
+  role: <노드 IAM 역할명>          # C-test-KarpenterNode (karpenter.tf 출력)
+  subnetSelectorTerms:            # 기존 VPC 서브넷 - 기존 태그값 또는 ID로 직접 지정
+    - tags: { karpenter.sh/discovery: <기존 클러스터 discovery 값> }
+  securityGroupSelectorTerms:    # Terraform이 node SG에 붙인 태그 = cluster_name
+    - tags: { karpenter.sh/discovery: <cluster_name> }
 ---
 # NodePool — 스케일링/통합 정책
 apiVersion: karpenter.sh/v1
@@ -71,6 +76,6 @@ spec:
 ## 체크포인트
 
 - SA 이름(`karpenter`) = iam.tf association 값과 일치
-- 서브넷/보안그룹에 `karpenter.sh/discovery` 태그 존재 (없으면 노드 띄울 위치 못 찾음)
+- node SG discovery 태그(`=cluster_name`)는 Terraform이 자동 등록. 서브넷은 NodeClass에서 직접 지정
 - 컨트롤러 역할에 IAM 정책 부착됨 (안 하면 EC2 생성 권한 없어 실패)
 - pod-identity-agent 애드온 Running

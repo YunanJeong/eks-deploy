@@ -37,6 +37,9 @@ module "vpc" {
   }
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1 # Internal ELB 생성용
+    # Karpenter가 노드 띄울 서브넷 discovery용. 신규 VPC 생성 시에만 적용됨
+    # (기존 VPC 사용 시엔 이 module.vpc 자체가 count=0이라 무관).
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
