@@ -5,12 +5,12 @@
 #======================================================================
 
 terraform {
-  required_version = ">= 1.5.0" # Terraform 최소 버전 요구사항
+  required_version = ">= 1.5.7" # EKS 모듈 v21 요구 최소 버전
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0" # AWS Provider 버전 고정
+      version = "~> 6.0" # EKS 모듈 v21이 provider 6 요구
     }
   }
 }

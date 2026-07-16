@@ -15,7 +15,7 @@ data "aws_availability_zones" "available" {}
 # 공식 AWS VPC 모듈 - var.vpc_id 가 비어 있을 때만 생성
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "~> 6.0"
 
   count = local.create_vpc ? 1 : 0
 

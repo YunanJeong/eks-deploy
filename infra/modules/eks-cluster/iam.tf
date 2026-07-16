@@ -57,9 +57,9 @@ resource "aws_iam_role_policy_attachment" "ebs_csi" {
 }
 
 # LB Controller - ALB/NLB 프로비저닝. AWS 관리형 정책이 없어 공식 정책(JSON)을 부착.
-#   파일명(official-iam-policy-for-lb-controller-v2.14.1.json)에 공식 여부·버전 표기.
+#   파일명(official-iam-policy-for-lb-controller-v3.4.2.json)에 공식 여부·버전 표기.
 #   아래 공식 iam_policy.json을 그대로 받은 것(내용 수정 X):
-#   https://github.com/kubernetes-sigs/aws-load-balancer-controller/raw/v2.14.1/docs/install/iam_policy.json
+#   https://github.com/kubernetes-sigs/aws-load-balancer-controller/raw/v3.4.2/docs/install/iam_policy.json
 #   ⚠️ LB Controller 버전 업 시 새 버전 파일로 교체(파일명 버전도 함께 변경) 후 아래 경로 수정.
 resource "aws_iam_role" "lb_controller" {
   name               = "${var.cluster_name}-AmazonEKSLoadBalancerControllerRole"
@@ -68,7 +68,7 @@ resource "aws_iam_role" "lb_controller" {
 }
 resource "aws_iam_policy" "lb_controller" {
   name   = "${var.cluster_name}-AWSLoadBalancerControllerIAMPolicy"
-  policy = file("${path.module}/official-iam-policy-for-lb-controller-v2.14.1.json")
+  policy = file("${path.module}/official-iam-policy-for-lb-controller-v3.4.2.json")
 }
 resource "aws_iam_role_policy_attachment" "lb_controller" {
   role       = aws_iam_role.lb_controller.name
