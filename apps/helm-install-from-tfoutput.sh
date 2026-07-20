@@ -73,12 +73,16 @@ echo "==> LB Controller CRD 적용 (받아둔 차트 v3.4.2 내장 CRD로 버전
 tar -xzOf "$LB_CHART" aws-load-balancer-controller/crds/crds.yaml | kubectl apply -f -
 
 echo "==> LB Controller 설치 (Helm)"
+# --wait: webhook이 준비될 때까지 대기 후 다음(Karpenter)으로 넘어감.
+#   (안 기다리면 LB Controller webhook 미준비 상태에서 Karpenter 설치가 실패)
+echo "    파드 Ready(webhook 준비)까지 보통 1~2분 대기합니다..."
 helm upgrade --install aws-load-balancer-controller "$LB_CHART" \
   -n kube-system \
   -f "$LB_DIR/values.yaml" \
   --set clusterName="$CLUSTER_NAME" \
   --set region="$AWS_REGION" \
-  --set vpcId="$VPC_ID"
+  --set vpcId="$VPC_ID" \
+  --wait --timeout 5m
 
 #----------------------------------------------------------------------
 # 3. Karpenter
