@@ -30,9 +30,10 @@ eks-deploy/
 │       │   └── terraform.tfvars.example# 템플릿 (git 포함)
 │       └── prod/                       # dev와 동일 구성 (backend key=eks/prod)
 └── apps/                               # 앱 (Helm, 별도 배포 — 이 Terraform 범위 밖)
+    ├── helm-install-from-tfoutput.sh   # Terraform output 받아 Helm 앱 일괄 자동 설치
     ├── COMPATIBILITY.md                 # 앱 ↔ K8s 호환성 이력 (업그레이드 시 여기부터)
-    ├── karpenter/                       # 차트(.tgz) + values.yaml + nodepool_nodeclass_guide.yaml(샘플)
-    └── aws-lb-controller/               # 차트(.tgz) + values.yaml
+    ├── karpenter/                       # 차트 + values.yaml + nodepool_nodeclass_guide.yaml(샘플)
+    └── aws-lb-controller/               # 차트 + values.yaml
 ```
 
 > ### 📌 디렉토리 분리 원칙 (중요)
@@ -83,6 +84,11 @@ aws eks update-kubeconfig --region <AWS_REGION> --name <CLUSTER_NAME>   # kubeco
 - **환경 전환은 `cd`로 끝** — 폴더가 곧 환경·state라 헷갈릴 일 없음.
 - **state 버킷명은 보안상 코드(`backend.tf`)에 없음** → 위처럼 init 시 지정(옵션) 또는 대화형 입력. 한 번 init하면 이후엔 불필요.
 - `terraform.tfvars`는 자동 로드·`.gitignore` 제외. 커밋 대상은 `.example`뿐.
+
+apply로 클러스터가 뜬 뒤 **앱(Karpenter·LB Controller) 설치**는 `apps/`에서. output을 읽어 일괄 설치:
+```bash
+./apps/helm-install-from-tfoutput.sh dev
+```
 
 ## ⚙️ 설정 참고
 
