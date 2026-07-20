@@ -132,6 +132,9 @@ state가 남아 있으면 한 줄로 제거됨.
 ```bash
 terraform destroy
 ```
+> **tfvars 분실해도 삭제 가능** — 삭제 대상은 **state**가 결정하므로 state(S3)만 있으면 됨.
+> default 없는 `cluster_name`만 채우면 되고(값은 실제 이름 권장), `-var="cluster_name=C-test"`로
+> 주거나 생략 시 뜨는 대화형 입력창에 넣으면 됨. (나머지 변수는 default라 destroy에 지장 없음)
 
 <details>
 <summary><b>state를 버린 경우 — 콘솔/CLI 수동 삭제</b></summary>
