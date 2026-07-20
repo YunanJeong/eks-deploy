@@ -3,7 +3,7 @@
 Ingress → ALB, `Service type=LoadBalancer` → NLB 를 프로비저닝하는 컨트롤러.
 Helm으로 설치하며 이 Terraform 범위 밖이다.
 
-**파일**: `values.yaml`(Helm 값)
+**파일**: `aws-load-balancer-controller-3.4.2.tgz`(차트) · `values.yaml`(Helm 값)
 
 ## 전제 (Terraform 쪽에서 이미 준비됨)
 
@@ -18,23 +18,27 @@ Helm으로 설치하며 이 Terraform 범위 밖이다.
   K8s 1.22+ 지원이라 1.36 호환. Terraform 정책 파일도 같은 버전:
   `infra/modules/eks-cluster/official-iam-policy-for-lb-controller-v3.4.2.json`.
 - **v3부터 Helm 차트 버전 = 앱 버전** (v2.x 시절엔 차트 v1.x로 어긋났음).
-- **CRD는 차트가 자동 설치하지 않음** — 업그레이드/최초 설치 시 최신 CRD를 별도 apply.
+- **CRD**: helm이 `install` 시엔 자동 적용하나 `upgrade` 시엔 안 함. 우리 스크립트는
+  `upgrade --install`이라 차트 내장 CRD를 매번 명시 적용(버전 일치·재현성 확보).
 
 ## 설치
 
-`values.yaml`의 `<>` 자리(clusterName·region·vpcId)를 채운 뒤 설치한다.
-값은 인프라 apply 출력에서 확인: `terraform output cluster_name` / `aws_region` / `vpc_id`.
+> **간편 경로**: `apps/helm-install-from-tfoutput.sh <env>` 가 Terraform output을 읽어 LB Controller와
+> Karpenter를 한 번에 설치한다. 아래는 그중 LB Controller 부분(CRD+설치)을 수동으로 하는 방법.
 
-# CRD 먼저 적용 (차트가 자동 설치 안 함)
-```bash
-kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
-```
+정적 설정은 `values.yaml`, 동적 값(clusterName·region·vpcId)은 `--set`으로 주입한다
+(values.yaml의 `<>`는 그대로 두고 --set이 덮음). 값은 인프라 output에서:
+`terraform output cluster_name` / `aws_region` / `vpc_id`.
 
-받아둔 로컬 차트로 설치:
 ```bash
+# 1. CRD 먼저 적용 (helm은 upgrade 시 CRD 자동 적용 안 함). 차트 v3.4.2 내장 CRD 사용.
+tar -xzOf aws-load-balancer-controller-3.4.2.tgz aws-load-balancer-controller/crds/crds.yaml | kubectl apply -f -
+
+# 2. 받아둔 로컬 차트로 설치
 helm upgrade --install aws-load-balancer-controller aws-load-balancer-controller-3.4.2.tgz \
   -n kube-system \
-  -f values.yaml
+  -f values.yaml \
+  --set clusterName=<cluster_name> --set region=<aws_region> --set vpcId=<vpc_id>
 ```
 > 최신 재다운로드: `helm pull eks/aws-load-balancer-controller --version <버전>`
 > (`helm repo add eks https://aws.github.io/eks-charts` 후)

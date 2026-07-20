@@ -1,6 +1,6 @@
 # Karpenter - Helm values
-# <> 부분을 terraform output(karpenter)에서 채운다.
-#   settings.clusterName        : karpenter.service_account 아님 주의 → cluster_name
+# helm-install-from-tfoutput.sh가 이 파일을 -f로 넘기고, 아래 <> 동적 값만 --set으로 덮어쓴다.
+#   settings.clusterName        : terraform output → cluster_name
 #   settings.interruptionQueue  : terraform output karpenter → queue_name
 #   serviceAccount.name         : terraform output karpenter → service_account ("karpenter")
 
@@ -14,12 +14,13 @@ serviceAccount:
   create: true
   name: karpenter
 
-# 컨트롤러 자원 요청/제한 (기본값. 노드 수 많아지면 상향)
+# 컨트롤러 자원 요청/제한. Karpenter 공식 권장값(requests=limits, cpu 1 / memory 1Gi).
+# 차트 default는 {}(무제한)이나, 프로덕션은 컨트롤러 안정성 위해 고정 권장.
 controller:
   resources:
     requests:
-      cpu: 250m
-      memory: 256Mi
+      cpu: 1
+      memory: 1Gi
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 1
+      memory: 1Gi

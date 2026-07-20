@@ -3,7 +3,7 @@
 노드 오토스케일링(비용 절감용). EKS Managed Node Group 위에서 동작하며, 파드 수요에
 맞춰 EC2를 동적으로 프로비저닝/정리한다. Helm으로 설치하며 이 Terraform 범위 밖이다.
 
-**파일**: `values.yaml`(Helm 값) · `nodepool.yaml`(NodePool + EC2NodeClass)
+**파일**: `karpenter-1.14.0.tgz`(차트) · `values.yaml`(Helm 값) · `nodepool_nodeclass_guide.yaml`(NodePool/EC2NodeClass 샘플)
 
 ## 전제 (Terraform 쪽에서 이미 준비됨)
 
@@ -30,16 +30,22 @@
 
 ## 설치 순서
 
+> **간편 경로**: `apps/helm-install-from-tfoutput.sh <env>` 가 Terraform output을 읽어 LB Controller와
+> Karpenter를 한 번에 설치한다. 아래는 그중 Karpenter 부분을 수동으로 하는 방법.
+
 준비값(인프라 apply 출력): `terraform output karpenter` → `queue_name`, `node_iam_role`, `service_account`.
 
 ### 1. Helm 설치
 
-`values.yaml`의 `<>`(clusterName·interruptionQueue)를 채운 뒤 설치한다.
+정적 설정(resources 등)은 `values.yaml`, 동적 값은 `--set`으로 주입한다
+(values.yaml의 `<>`는 그대로 두고 --set이 덮음).
 
 ```bash
 helm upgrade --install karpenter karpenter-1.14.0.tgz \
   --namespace kube-system \
-  -f values.yaml
+  -f values.yaml \
+  --set settings.clusterName=<cluster_name> \
+  --set settings.interruptionQueue=<queue_name>
 ```
 > 받아둔 로컬 차트(`karpenter-1.14.0.tgz`)로 설치. 최신 재다운로드:
 > `helm pull oci://public.ecr.aws/karpenter/karpenter --version <버전>`
@@ -48,10 +54,10 @@ helm upgrade --install karpenter karpenter-1.14.0.tgz \
 
 ### 2. NodePool / EC2NodeClass 적용
 
-`nodepool.yaml`의 `<>`(role·서브넷 discovery 값)를 채운 뒤 적용한다.
+`nodepool_nodeclass_guide.yaml`의 `<>`(role·서브넷 discovery 값)를 채운 뒤 적용한다.
 
 ```bash
-kubectl apply -f nodepool.yaml
+kubectl apply -f nodepool_nodeclass_guide.yaml
 ```
 - `role` = `<cluster_name>-KarpenterNode` (node_iam_role 출력값)
 - 서브넷 = 기존 서브넷의 discovery 태그값 또는 ID 직접 지정

@@ -12,7 +12,9 @@ spec:
   # Karpenter가 띄우는 노드가 사용할 IAM 역할 (인프라에서 생성됨)
   role: <cluster_name>-KarpenterNode
 
-  # AMI: EKS 최적화 AL2023 (alias로 최신 참조. 클러스터 버전에 맞춰 자동)
+  # AMI: EKS 최적화 AL2023.
+  #   al2023@latest 는 새 AMI 릴리스마다 노드가 drift/replace돼 공식이 프로덕션 비권장.
+  #   프로덕션은 버전 핀 고정 권장: 예) alias: al2023@v20260714 (배포 시점 최신으로 갱신)
   amiSelectorTerms:
     - alias: al2023@latest
 
@@ -54,6 +56,6 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s
-  # 클러스터 전체 노드 상한 (폭주 방지)
+  # NodePool 단위 상한 (폭주·과금 방지). 클러스터 전역 상한은 아님.
   limits:
-    cpu: "1000"
+    cpu: "1000"   # DecimalSI 문자열 권장(정수는 GitOps diff 흔들림 유발)
