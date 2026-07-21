@@ -7,9 +7,13 @@
 provider "aws" {
   region = var.aws_region
 
-  # 모든 리소스에 공통 태그 일괄 적용
+  # 모든 리소스에 공통 태그 일괄 적용.
+  # Terraform·Cluster는 여기서 자동 부여하며, merge 뒤 인자로 둬 tfvars가 못 덮음(오버라이드 불가).
   default_tags {
-    tags = var.tags
+    tags = merge(var.tags, {
+      Terraform = "true"
+      Cluster   = var.cluster_name
+    })
   }
 }
 

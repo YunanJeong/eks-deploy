@@ -131,8 +131,7 @@ variable "tags" {
   description = "Common tags applied to all resources"
   type        = map(string)
   default = {
-    Environment = "dev"
-    Terraform   = "true"
-    Project     = "eks-deploy"
+    Cluster   = "default"
+    Terraform = "true"
   }
 }

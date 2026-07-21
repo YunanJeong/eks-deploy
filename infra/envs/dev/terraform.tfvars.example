@@ -3,9 +3,15 @@
 # =====================================================================
 
 # [필수] EKS 클러스터 이름 — default 없음. 블루/그린 시 신규 이름 지정.
-cluster_name = "eks-cluster-C"
+cluster_name = "my-eks-A"
 
-# --- 아래는 모두 선택 사항 (variables.tf의 default 적용됨) ---
+# --- 태그 (모든 리소스에 일괄 적용) ---
+# 기능상 영향 없이 사람이 콘솔에서 식별하기 위한 값. Terraform·Cluster 식별 키는 main.tf가 자동 부여하므로 여기선 나머지만 지정.
+tags = {
+  Name    = "my-eks-A"
+  Owner   = "you@example.com"
+  Service = "my-service"
+}
 
 # 배포 리전 (기본값: ap-northeast-2)
 aws_region = "ap-northeast-2"
@@ -54,11 +60,3 @@ access_entries = {}
 #     namespaces    = []
 #   }
 # }
-
-# --- 태그 (모든 리소스에 일괄 적용) ---
-tags = {
-  Terraform = "true"
-  Owner     = "you@example.com"
-  Service   = "my-service"
-  Name      = "eks-cluster-C"
-}
