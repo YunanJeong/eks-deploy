@@ -59,8 +59,8 @@ eks-deploy/
 | 보안그룹 | 생성 주체 | 역할 |
 |----------|-----------|------|
 | `eks-cluster-sg-<name>-*` | AWS(EKS) 자동 | 컨트롤플레인 ENI에 붙음. self 전체 허용 규칙 보유. 우리 모듈은 노드엔 안 붙임(node SG 사용). 규칙 수정 불가 |
-| `<name>-cluster-*` | EKS 모듈 | 컨트롤플레인(API 서버) 쪽. 노드→API(443) 등 커스텀 규칙용. 콘솔 "추가 보안 그룹" |
-| `<name>-node-*` | EKS 모듈 | 노드에 붙음. 노드↔노드(DNS 53·**ephemeral=파드 간 통신**) + 컨트롤플레인→노드(kubelet 10250·웹훅) |
+| `<name>-cluster-*` | EKS 모듈 | 컨트롤플레인(API 서버) ENI에 붙음. 노드→API(443) 등 커스텀 규칙용. 콘솔 "추가 보안 그룹" |
+| `<name>-node-*` | EKS 모듈 | 노드에 붙음. 노드↔노드(DNS 53·**ephemeral=파드 간 통신**) + 컨트롤플레인→노드(kubelet 10250·웹훅). `karpenter.sh/discovery` 태그가 붙는 SG |
 
 - 노드그룹 노드에는 **node SG만** 붙는다(primary는 기본 미부착). node SG의 self 규칙으로 노드 간 통신이 커버됨.
 - **노드 간 파드 통신은 `ephemeral(1025-65535)` self 규칙으로 허용된다.** (DNS만 53으로 별도)
