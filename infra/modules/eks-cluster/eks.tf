@@ -127,7 +127,7 @@ module "eks" {
       desired_size = var.node_group_desired_size
 
       labels = {
-        role = "main"
+        noderole = "system"
       }
     }
   }
