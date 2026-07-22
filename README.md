@@ -78,7 +78,7 @@ cp terraform.tfvars.example terraform.tfvars    # 값 수정 (최소 cluster_nam
 terraform init -backend-config="bucket=<버킷명>"   # 옵션 없이 치면 대화형으로 물어봄
 terraform plan
 terraform apply
-aws eks update-kubeconfig --region <AWS_REGION> --name <CLUSTER_NAME>   # kubeconfig 갱신
+aws eks update-kubeconfig --region <AWS_REGION> --name <CLUSTER_NAME> --alias <CONTEXT_ALIAS>   # kubeconfig 갱신(--alias로 context alias 지정)
 ```
 
 - **환경 전환은 `cd`로 끝** — 폴더가 곧 환경·state라 헷갈릴 일 없음.
