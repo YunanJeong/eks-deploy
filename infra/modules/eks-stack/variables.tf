@@ -105,6 +105,14 @@ variable "node_group_desired_size" {
   default     = 2
 }
 
+# 노드 AMI 릴리스 버전. ""이면 최신 추종(새 AMI 나올 때 apply가 노드를 교체),
+# 값을 주면 고정. 형식 예: "1.36.0-20260714". cluster_version 올릴 때 함께 갱신.
+variable "node_ami_release_version" {
+  description = "Pin node group AMI release version. Empty means always use the latest."
+  type        = string
+  default     = ""
+}
+
 # --- 액세스 (클러스터 생성자 외 추가 멤버) ---
 # 클러스터에 kubectl 접근을 허용할 IAM 유저/역할 목록.
 #   key           : 임의 식별자 (예: "devops-lead")

@@ -119,8 +119,13 @@ module "eks" {
 
       iam_role_name = "${var.cluster_name}-MainNodeGroup"
 
-      # v21 기본 ami_type=AL2023_x86_64_STANDARD, use_latest_ami_release_version=true
+      # v21 기본 ami_type=AL2023_x86_64_STANDARD
       instance_types = var.instance_types
+
+      # AMI 릴리스 버전. 비면 최신 추종(새 AMI 나올 때 노드 교체), 값 주면 고정.
+      # 두 인자는 짝이어야 한다 - use_latest가 켜져 있으면 ami_release_version은 무시됨.
+      use_latest_ami_release_version = var.node_ami_release_version == ""
+      ami_release_version            = var.node_ami_release_version != "" ? var.node_ami_release_version : null
 
       min_size     = var.node_group_min_size
       max_size     = var.node_group_max_size

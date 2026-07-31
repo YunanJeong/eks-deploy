@@ -81,6 +81,12 @@ variable "node_group_desired_size" {
   default     = 2
 }
 
+variable "node_ami_release_version" {
+  description = "Pin node group AMI release version. Empty means always use the latest."
+  type        = string
+  default     = ""
+}
+
 variable "access_entries" {
   description = "Additional IAM principals granted cluster access"
   type = map(object({

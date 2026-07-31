@@ -32,10 +32,11 @@ module "this" {
 
   cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
 
-  instance_types          = var.instance_types
-  node_group_min_size     = var.node_group_min_size
-  node_group_max_size     = var.node_group_max_size
-  node_group_desired_size = var.node_group_desired_size
+  instance_types           = var.instance_types
+  node_group_min_size      = var.node_group_min_size
+  node_group_max_size      = var.node_group_max_size
+  node_group_desired_size  = var.node_group_desired_size
+  node_ami_release_version = var.node_ami_release_version
 
   access_entries = var.access_entries
   tags           = var.tags

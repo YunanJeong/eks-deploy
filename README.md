@@ -96,6 +96,7 @@ apply로 클러스터가 뜬 뒤 **앱(Karpenter·LB Controller) 설치**는 `ap
 
 - **`cluster_name`만 필수** — 나머지는 `variables.tf` 기본값 사용 (생략 가능).
 - **노드 방식** — EKS Managed Node Group으로 기본 노드를 구성. **EKS Auto Mode는 추가 비용이 발생하므로 사용하지 않고**, 비용 절감을 위해 **Karpenter를 Helm 차트로 직접 설치·관리**함 (이 Terraform 범위 밖).
+- **노드 AMI 버전** — 기본(`node_ami_release_version = ""`)은 최신 AMI 추종이라, AWS가 새 AMI를 내면 `apply` 때 노드가 롤링 교체됨. 운영에선 현재 버전을 지정해 고정할 것(`cluster_version` 올릴 때 함께 갱신).
 - **인증 모드** — 기본 `API_AND_CONFIG_MAP` (Access Entry + 레거시 `aws-auth` ConfigMap 병행). 레거시 앱 없으면 `API`로 좁힐 수 있음.
 - **엔드포인트** — 원격 `kubectl`용 퍼블릭 활성화. 운영에선 `cluster_endpoint_public_access_cidrs`로 접근 IP를 좁힐 것.
 - **KMS/로그 비활성** — Secret 암호화 KMS·컨트롤플레인 CloudWatch 로그는 끔(`kms:*`/`logs:*` 권한 불필요). 컴플라이언스 필요 시 활성화.
