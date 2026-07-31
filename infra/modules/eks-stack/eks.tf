@@ -55,6 +55,9 @@ module "eks" {
   create_cloudwatch_log_group = false
   enabled_log_types           = [] # v20: cluster_enabled_log_types
 
+  # launch template의 tag_specifications를 거쳐 노드 EC2·EBS·ENI까지 태그를 전달.
+  tags = var.tags
+
   # --- 노드 보안그룹 태그 ---
   # Karpenter가 EC2NodeClass의 securityGroupSelectorTerms로 이 node SG를 찾도록
   # discovery 태그를 붙인다. (merge라 기존 태그는 보존되고 이 태그만 추가됨)

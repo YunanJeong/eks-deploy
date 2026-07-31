@@ -142,4 +142,10 @@ variable "tags" {
     Cluster   = "default"
     Terraform = "true"
   }
+
+  # Service는 용도별 비용 정산 기준이라 필수.
+  validation {
+    condition     = contains(keys(var.tags), "Service")
+    error_message = "tags에 Service 키가 필요합니다 (비용 정산용)."
+  }
 }

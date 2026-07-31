@@ -4,16 +4,20 @@
 #   - 실제 값은 terraform.tfvars 에서 주입
 #======================================================================
 
+# Terraform·Cluster는 여기서 자동 부여하며, merge 뒤 인자로 둬 tfvars가 못 덮음(오버라이드 불가).
+locals {
+  common_tags = merge(var.tags, {
+    Terraform = "true"
+    Cluster   = var.cluster_name
+  })
+}
+
 provider "aws" {
   region = var.aws_region
 
-  # 모든 리소스에 공통 태그 일괄 적용.
-  # Terraform·Cluster는 여기서 자동 부여하며, merge 뒤 인자로 둬 tfvars가 못 덮음(오버라이드 불가).
+  # 프로바이더가 모든 리소스에 공통 태그 일괄 적용.
   default_tags {
-    tags = merge(var.tags, {
-      Terraform = "true"
-      Cluster   = var.cluster_name
-    })
+    tags = local.common_tags
   }
 }
 
@@ -39,5 +43,7 @@ module "this" {
   node_ami_release_version = var.node_ami_release_version
 
   access_entries = var.access_entries
-  tags           = var.tags
+
+  # 대부분은 위 default_tags가 처리하나, 노드 launch template은 닿지 않아 따로 넘긴다.
+  tags = local.common_tags
 }
