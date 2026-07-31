@@ -10,8 +10,8 @@ module "eks" {
   version = "~> 21.0"
 
   name               = var.cluster_name    # v20: cluster_name
-  kubernetes_version = var.cluster_version  # v20: cluster_version
-  region             = var.aws_region       # v21 신규
+  kubernetes_version = var.cluster_version # v20: cluster_version
+  region             = var.aws_region      # v21 신규
 
   vpc_id     = local.vpc_id
   subnet_ids = local.private_subnet_ids # 노드는 프라이빗 서브넷에 배치

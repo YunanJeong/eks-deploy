@@ -16,7 +16,7 @@ Helm으로 설치하며 이 Terraform 범위 밖이다.
 
 - LB Controller **v3.4.2** (차트 `aws-load-balancer-controller-3.4.2.tgz`로 받아둠).
   K8s 1.22+ 지원이라 1.36 호환. Terraform 정책 파일도 같은 버전:
-  `infra/modules/eks-cluster/official-iam-policy-for-lb-controller-v3.4.2.json`.
+  `infra/modules/eks-stack/official-iam-policy-for-lb-controller-v3.4.2.json`.
 - **v3부터 Helm 차트 버전 = 앱 버전** (v2.x 시절엔 차트 v1.x로 어긋났음).
 - **CRD**: helm이 `install` 시엔 자동 적용하나 `upgrade` 시엔 안 함. 우리 스크립트는
   `upgrade --install`이라 차트 내장 CRD를 매번 명시 적용(버전 일치·재현성 확보).

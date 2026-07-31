@@ -17,8 +17,8 @@ provider "aws" {
   }
 }
 
-module "eks" {
-  source = "../../modules/eks-cluster"
+module "this" {
+  source = "../../modules/eks-stack"
 
   aws_region          = var.aws_region
   cluster_name        = var.cluster_name

@@ -12,7 +12,7 @@ AWS 공식 모듈(VPC, EKS) 기반이며, `vpc_id` 지정 시 **기존 네트워
 ```
 eks-deploy/
 ├── infra/                              # 인프라 (Terraform)
-│   ├── modules/eks-cluster/            # 공유 모듈 = 실제 리소스 코드
+│   ├── modules/eks-stack/              # 공유 모듈 = 실제 리소스 코드
 │   │   ├── eks.tf                      # EKS 클러스터, Managed Node Group, 애드온
 │   │   ├── vpc.tf                      # 네트워크(기존 참조 or 신규 생성)
 │   │   ├── iam.tf                      # Pod Identity 역할·연결(Karpenter/CNI/EBS/LB)
@@ -37,7 +37,7 @@ eks-deploy/
 ```
 
 > ### 📌 디렉토리 분리 원칙 (중요)
-> - **코드는 `modules/eks-cluster`에 한 벌.** 각 env는 값만 다르게 이 모듈을 호출함 (중복 없음).
+> - **코드는 `modules/eks-stack`에 한 벌.** 각 env는 값만 다르게 이 모듈을 호출함 (중복 없음).
 > - **환경 = 디렉토리 = state.** dev/prod가 물리적으로 분리돼 섞일 수 없음.
 > - **환경 전환은 오직 `cd`.** `terraform workspace`나 `-backend-config` 전환 안 씀 — 폴더 이동이 곧 환경 전환.
 > - 그래서 "지금 어느 환경?"은 **현재 경로(pwd)가 곧 답** → 실수로 다른 환경 건드릴 위험 원천 차단.

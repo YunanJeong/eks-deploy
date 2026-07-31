@@ -31,6 +31,6 @@ apps/의 Helm 차트·관련 파일이 각 Kubernetes 버전에서 어떤 버전
 |---------|------|-----------------|------|------|
 | Karpenter | 1.14.0 | **>= 1.13** | `karpenter/karpenter-1.14.0.tgz` | karpenter.sh 호환 매트릭스 |
 | LB Controller | 3.4.2 | 1.22+ | `aws-lb-controller/aws-load-balancer-controller-3.4.2.tgz` | github releases |
-| LB Controller IAM 정책 | v3.4.2 | (앱과 동일) | `../infra/modules/eks-cluster/official-iam-policy-for-lb-controller-v3.4.2.json` | 앱 저장소 iam_policy.json |
+| LB Controller IAM 정책 | v3.4.2 | (앱과 동일) | `../infra/modules/eks-stack/official-iam-policy-for-lb-controller-v3.4.2.json` | 앱 저장소 iam_policy.json |
 
 > Karpenter 호환은 **범위**다(1.14는 K8s 1.30~1.36 모두 지원). 표의 "하한"은 1.36 기준 최소 버전.
