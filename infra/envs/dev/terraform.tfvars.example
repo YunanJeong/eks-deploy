@@ -43,6 +43,9 @@ node_group_min_size     = 1
 node_group_desired_size = 2
 node_group_max_size     = 3
 
+# 노드 AMI 릴리스 버전. ""이면 최신 추종(새 AMI 나올 때 apply가 노드를 교체), 값 주면 고정.
+node_ami_release_version = "" # 예: "1.36.0-20260714"
+
 # --- 액세스 (클러스터 생성자 외 추가 멤버) ---
 # key이름("iam_user_N")은 임의 라벨 - 자유롭게 짓고, 멤버 수만큼 항목을 늘림.
 # policy_arn: .../AmazonEKSClusterAdminPolicy(전체관리) | AdminPolicy | EditPolicy | ViewPolicy(읽기)

@@ -10,8 +10,8 @@ module "eks" {
   version = "~> 21.0"
 
   name               = var.cluster_name    # v20: cluster_name
-  kubernetes_version = var.cluster_version  # v20: cluster_version
-  region             = var.aws_region       # v21 신규
+  kubernetes_version = var.cluster_version # v20: cluster_version
+  region             = var.aws_region      # v21 신규
 
   vpc_id     = local.vpc_id
   subnet_ids = local.private_subnet_ids # 노드는 프라이빗 서브넷에 배치
@@ -54,6 +54,9 @@ module "eks" {
   # 로그 off -> 컨트롤플레인 감사로그 미수집. 규제상 감사 추적 필요하면 enabled_log_types 채울 것.
   create_cloudwatch_log_group = false
   enabled_log_types           = [] # v20: cluster_enabled_log_types
+
+  # launch template의 tag_specifications를 거쳐 노드 EC2·EBS·ENI까지 태그를 전달.
+  tags = var.tags
 
   # --- 노드 보안그룹 태그 ---
   # Karpenter가 EC2NodeClass의 securityGroupSelectorTerms로 이 node SG를 찾도록
@@ -119,8 +122,13 @@ module "eks" {
 
       iam_role_name = "${var.cluster_name}-MainNodeGroup"
 
-      # v21 기본 ami_type=AL2023_x86_64_STANDARD, use_latest_ami_release_version=true
+      # v21 기본 ami_type=AL2023_x86_64_STANDARD
       instance_types = var.instance_types
+
+      # AMI 릴리스 버전. 비면 최신 추종(새 AMI 나올 때 노드 교체), 값 주면 고정.
+      # 두 인자는 짝이어야 한다 - use_latest가 켜져 있으면 ami_release_version은 무시됨.
+      use_latest_ami_release_version = var.node_ami_release_version == ""
+      ami_release_version            = var.node_ami_release_version != "" ? var.node_ami_release_version : null
 
       min_size     = var.node_group_min_size
       max_size     = var.node_group_max_size

@@ -1,6 +1,6 @@
 #======================================================================
 # 입력 변수 (envs -> 모듈로 전달)
-#   - 모듈(../../modules/eks-cluster/variables.tf)과 동일한 선언.
+#   - 모듈(../../modules/eks-stack/variables.tf)과 동일한 선언.
 #   - 값은 terraform.tfvars 에서 주입.
 #======================================================================
 
@@ -79,6 +79,12 @@ variable "node_group_desired_size" {
   description = "Desired size for node group"
   type        = number
   default     = 2
+}
+
+variable "node_ami_release_version" {
+  description = "Pin node group AMI release version. Empty means always use the latest."
+  type        = string
+  default     = ""
 }
 
 variable "access_entries" {
