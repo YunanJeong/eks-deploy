@@ -24,7 +24,8 @@ cluster_version = "1.36"
 authentication_mode = "API_AND_CONFIG_MAP"
 
 # --- 네트워크 ---
-# 기존 VPC를 쓰려면 아래 3개를 채움(이때 vpc_cidr은 무시됨). 비워두면 vpc_cidr로 신규 생성함.
+# 기존 VPC 사용 시 vpc_id 지정(vpc_cidr 무시), 비우면 신규 생성.
+# 기존 VPC 사용 시 subnet_ids 직접 지정. private 필수, public은 노드를 public에도 배치할 때만.
 vpc_id             = ""
 private_subnet_ids = []
 public_subnet_ids  = []
