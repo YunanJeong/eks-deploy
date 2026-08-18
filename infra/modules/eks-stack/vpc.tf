@@ -28,8 +28,9 @@ module "vpc" {
   public_subnets  = [for k, v in slice(data.aws_availability_zones.available.names, 0, 3) : cidrsubnet(var.vpc_cidr, 8, k + 4)]
 
   # NAT 게이트웨이 활성화 (프라이빗 서브넷 인터넷 연결용)
-  enable_nat_gateway = true
-  single_nat_gateway = true # 비용 절감을 위해 단일 NAT 게이트웨이 설정
+  enable_nat_gateway      = true
+  single_nat_gateway      = true # 비용 절감을 위해 단일 NAT 게이트웨이 설정
+  map_public_ip_on_launch = true # public subnet에 뜨는 노드에 public IP 자동 할당
 
   # EKS 및 로드 밸런서 동작을 위한 필수 태그
   public_subnet_tags = {
