@@ -72,17 +72,23 @@ module "eks" {
   # 운영 편의: eks-node-monitoring-agent, metrics-server
   #
   # vpc-cni/ebs-csi의 IAM 역할은 애드온이 소유하는 pod_identity_association으로 연결함.
-  # v21은 most_recent 기본 true(항상 최신 애드온) / resolve_conflicts는 자동 처리.
+  # resolve_conflicts는 v21에서 자동 처리.
+  #
+  # most_recent=false: 기본값 true는 항상 최신을 따라가는데, 애드온 릴리스 주기가 짧아
+  # 사소한 변경 apply마다 애드온 업데이트가 딸려와 오래 걸린다.
+  # false면 버전이 cluster_version에 묶여 거의 안 바뀌므로 이 문제가 크게 줄어든다.
   addons = {
     # Pod Identity 에이전트: association이 실제 작동하려면 필수 전제.
     # before_compute=true -> 노드/CNI보다 먼저 떠서, CNI가 처음부터 자격증명을 받게 함.
     eks-pod-identity-agent = {
+      most_recent    = false
       before_compute = true
     }
 
     # 파드 네트워킹(ENI/IP). before_compute=true로 노드 부팅 전에 준비되게 함.
     # IAM 권한 필요 -> pod_identity_association 필수. standalone이 아닌 애드온 귀속으로 생성.
     vpc-cni = {
+      most_recent    = false
       before_compute = true
       pod_identity_association = [{
         role_arn        = aws_iam_role.vpc_cni.arn
@@ -91,14 +97,19 @@ module "eks" {
     }
 
     # 클러스터 내부 DNS
-    coredns = {}
+    coredns = {
+      most_recent = false
+    }
 
     # 서비스 네트워킹(iptables 규칙). 네트워킹 필수 애드온이라 함께 둠.
-    kube-proxy = {}
+    kube-proxy = {
+      most_recent = false
+    }
 
     # 영구 볼륨(EBS) 프로비저닝 드라이버
     # IAM 권한 필요 -> pod_identity_association 필수. standalone이 아닌 애드온 귀속으로 생성.
     aws-ebs-csi-driver = {
+      most_recent = false
       pod_identity_association = [{
         role_arn        = aws_iam_role.ebs_csi.arn
         service_account = local.pod_identity_sa.ebs_csi # "ebs-csi-controller-sa"
@@ -106,10 +117,14 @@ module "eks" {
     }
 
     # 노드 상태 모니터링 에이전트
-    eks-node-monitoring-agent = {}
+    eks-node-monitoring-agent = {
+      most_recent = false
+    }
 
     # 지표 서버(HPA/kubectl top용)
-    metrics-server = {}
+    metrics-server = {
+      most_recent = false
+    }
   }
 
   # EKS Managed Node Groups 설정
